@@ -2,7 +2,9 @@ $(document).ready(function () {
   const playerEl = $("#player");
   const dealerEl = $("#dealer");
   const scoreEl = $("#score");
+  const dealerScoreEl = $("#d-score");
   const hitButton = $("#hit");
+  const holdButton = $("#hold");
   const result = $("#result");
 
   let playerScore = 0;
@@ -12,6 +14,59 @@ $(document).ready(function () {
   const deltCards = [];
   let currPlayerHand = [];
 
+  function showScores() {
+    $(".hidden").removeClass("hidden");
+    dealerScoreEl.empty()
+    dealerScoreEl.text(dealerScore);
+    if (dealerScore <= 21 && dealerScore > playerScore) {
+      result.text("You Lost!");
+    } else if (
+      (playerScore <= 21 && playerScore > dealerScore) ||
+      (playerScore <= 21 && dealerScore > 21)
+    ) {
+      result.text("You Won!");
+    } else {
+      result.text("Tie!");
+    }
+  }
+
+  function hold(delt) {
+    const cards = {
+      previous_cards: delt,
+      hand_size: 1,
+    };
+    console.log(cards);
+    let tries = 0;
+    if (dealerScore < 17) {
+      $.post({
+        url:
+          "https://8b5qreoqz7.execute-api.us-east-1.amazonaws.com/randomCards",
+        data: JSON.stringify(cards),
+      })
+        .then(function ({ hand }) {
+          dAces += hand.scores.acesByHand[0];
+          dealerScore += hand.scores.byHand[0];
+          console.log(dealerScore);
+          if (dAces > 0 && dealerScore > 21) {
+            if (dealerScore - 10 >= 10) {
+              dealerScore -= 10;
+              dAces -= 1;
+            }
+          }
+          tries++;
+          console.log("try");
+          let dealerCard = $("<li>").text(hand.asArray[0][0]);
+          dealerEl.append(dealerCard);
+          showScores();
+        })
+        .catch(function (err) {
+          console.log(err);
+        });
+    } else {
+      showScores();
+    }
+  }
+
   function hitMe(delt) {
     const cards = {
       previous_cards: delt,
@@ -19,8 +74,7 @@ $(document).ready(function () {
     };
     console.log(cards);
     $.post({
-      url:
-        "https://cors-anywhere.herokuapp.com/https://8b5qreoqz7.execute-api.us-east-1.amazonaws.com/randomCards",
+      url: "https://8b5qreoqz7.execute-api.us-east-1.amazonaws.com/randomCards",
       data: JSON.stringify(cards),
     })
       .then(function ({ hand }) {
@@ -36,23 +90,11 @@ $(document).ready(function () {
         if (pAces > 0 && playerScore > 21) {
           if (playerScore - 10 >= 10) {
             playerScore -= 10;
-          } 
+            pAces -= 1;
+          }
         } else if (playerScore > 21) {
           result.text("You Lost!");
         }
-      
-        //   let [score, _, ace] = convertCardToNum(card);
-        //   playerScore += score;
-        //   if (ace) {
-        //     aces++;
-          // }
-        // }
-        // if (aces > 0 && playerScore > 21) {
-        //   playerScore -= 10 * aces;
-        // }
-        // if (playerScore > 21) {
-        //   result.text("You Lost!");
-        // }
         scoreEl.text(playerScore);
       })
       .catch(function (err) {
@@ -60,37 +102,10 @@ $(document).ready(function () {
       });
   }
 
-  // function convertCardToNum(card) {
-  //   const values = {
-  //     Ace: 11,
-  //     Jack: 10,
-  //     Queen: 10,
-  //     King: 10,
-  //   };
-  //   const [pip, _, hand] = card.split(" ");
-  //   let num = pip;
-  //   let ace = false;
-  //   if (values[pip]) {
-  //     num = values[pip];
-  //     if (pip === "Ace") {
-  //       ace = true;
-  //     }
-  //   }
-  //   return [parseInt(num), hand, ace];
-  // }
-
   function startDeal() {
     $.get({
       url:
         "https://8b5qreoqz7.execute-api.us-east-1.amazonaws.com/randomCards?hand_size=2&total_hands=2",
-        headers: {
-          // 'Content-Type': 'application/x-www-form-urlencoded'
-          "Access-Control-Allow-Origin": "https://dgtlctzn.github.io"
-      },
-
-    //   xhrFields: {
-    //     withCredentials: true
-    // },
     })
       .then(function ({ hand }) {
         console.log(hand);
@@ -99,6 +114,11 @@ $(document).ready(function () {
         playerScore += initScore[0];
         dealerScore += initScore[1];
         pAces += hand.scores.acesByHand[0];
+        if (pAces === 2) {
+          playerScore -= 10;
+        } else if (dAces === 2) {
+          dealerScore -= 10;
+        }
         dAces += hand.scores.acesByHand[0];
         for (let i = 0; i < 2; i++) {
           let playerCard = $("<li>").text(playerHand[i]);
@@ -123,5 +143,9 @@ $(document).ready(function () {
 
   hitButton.on("click", function () {
     hitMe(deltCards);
+  });
+
+  holdButton.on("click", function () {
+    hold(deltCards);
   });
 });

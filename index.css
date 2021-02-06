@@ -11,6 +11,10 @@ h2 {
     display: none;
 }
 
+.show {
+    display: contents;
+}
+
 #suits {
     color: black;
 }
