@@ -1,0 +1,20 @@
+body {
+    background-color: green;
+    color: white;
+}
+
+h2 {
+    float: right;
+}
+
+.hidden {
+    display: none;
+}
+
+#suits {
+    color: black;
+}
+
+span {
+    color: red;
+}
