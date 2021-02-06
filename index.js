@@ -84,7 +84,8 @@ $(document).ready(function () {
       url:
         "https://8b5qreoqz7.execute-api.us-east-1.amazonaws.com/randomCards?hand_size=2&total_hands=2",
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+          // 'Content-Type': 'application/x-www-form-urlencoded'
+          "Access-Control-Allow-Origin": "https://dgtlctzn.github.io"
       },
 
     //   xhrFields: {
