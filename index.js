@@ -30,14 +30,12 @@ $(document).ready(function () {
     }
   }
 
-  function hold(delt) {
-    const cards = {
-      previous_cards: delt,
-      hand_size: 1,
-    };
-    console.log(cards);
-    let tries = 0;
-    if (dealerScore < 17) {
+  function hold(delt, tries=0) {
+    if (dealerScore < 17 && tries < 6) {
+      const cards = {
+        previous_cards: delt,
+        hand_size: 1,
+      };
       $.post({
         url:
           "https://8b5qreoqz7.execute-api.us-east-1.amazonaws.com/randomCards",
@@ -45,25 +43,32 @@ $(document).ready(function () {
       })
         .then(function ({ hand }) {
           dAces += hand.scores.acesByHand[0];
+          console.log("score: " + hand.scores.byHand[0])
+          console.log("init: " + dealerScore)
           dealerScore += hand.scores.byHand[0];
-          console.log(dealerScore);
+          console.log(dAces);
           if (dAces > 0 && dealerScore > 21) {
             if (dealerScore - 10 >= 10) {
               dealerScore -= 10;
               dAces -= 1;
             }
           }
+          console.log(dealerScore);
           tries++;
-          console.log("try");
+          console.log("try " + tries);
+          // console.log("try");
           let dealerCard = $("<li>").text(hand.asArray[0][0]);
           dealerEl.append(dealerCard);
-          showScores();
+          // showScores();
+          hold(deltCards, tries);
         })
         .catch(function (err) {
           console.log(err);
         });
     } else {
       showScores();
+      hitButton.attr("disabled", true)
+      holdButton.attr("disabled", true)
     }
   }
 
