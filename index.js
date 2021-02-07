@@ -7,6 +7,8 @@ $(document).ready(function () {
   const holdButton = $("#hold");
   const result = $("#result");
   const playAgainButton = $("#play-again");
+  const suits = $(".suits");
+  const altSuits = $(".alt-suits");
 
   let playerScore = 0;
   let dealerScore = 0;
@@ -15,114 +17,15 @@ $(document).ready(function () {
   let deltCards = [];
   let currPlayerHand = [];
 
-  function playAgain() {
-    hitButton.attr("disabled", false);
-    holdButton.attr("disabled", false);
-    playAgainButton.addClass("hidden");
-    playerEl.empty()
-    dealerEl.empty()
-    result.empty();
-    dealerScoreEl.empty();
-    playerScore = 0;
-    dealerScore = 0;
-    pAces = 0;
-    dAces = 0;
-    deltCards = [];
-    currPlayerHand = [];
-  }
-
-  function showScores() {
-    $(".hidden").removeClass("hidden");
-    dealerScoreEl.empty()
-    dealerScoreEl.text(dealerScore);
-    if (dealerScore <= 21 && dealerScore > playerScore) {
-      result.text("You Lost!");
-    } else if (
-      (playerScore <= 21 && playerScore > dealerScore) ||
-      (playerScore <= 21 && dealerScore > 21)
-    ) {
-      result.text("You Won!");
-    } else {
-      result.text("Tie!");
-    }
-  }
-
-  function hold(delt, tries=0) {
-    if (dealerScore < 17 && tries < 6) {
-      const cards = {
-        previous_cards: delt,
-        hand_size: 1,
-      };
-      $.post({
-        url:
-          "https://8b5qreoqz7.execute-api.us-east-1.amazonaws.com/randomCards",
-        data: JSON.stringify(cards),
-      })
-        .then(function ({ hand }) {
-          dAces += hand.scores.acesByHand[0];
-          console.log("score: " + hand.scores.byHand[0])
-          console.log("init: " + dealerScore)
-          dealerScore += hand.scores.byHand[0];
-          console.log(dAces);
-          if (dAces > 0 && dealerScore > 21) {
-            if (dealerScore - 10 >= 10) {
-              dealerScore -= 10;
-              dAces -= 1;
-            }
-          }
-          console.log(dealerScore);
-          tries++;
-          console.log("try " + tries);
-          // console.log("try");
-          let dealerCard = $("<li>").text(hand.asArray[0][0]);
-          dealerEl.append(dealerCard);
-          // showScores();
-          hold(deltCards, tries);
-        })
-        .catch(function (err) {
-          console.log(err);
-        });
-    } else {
-      showScores();
-      hitButton.attr("disabled", true)
-      holdButton.attr("disabled", true)
-    }
-  }
-
-  function hitMe(delt) {
-    const cards = {
-      previous_cards: delt,
-      hand_size: 1,
-    };
-    console.log(cards);
-    $.post({
-      url: "https://8b5qreoqz7.execute-api.us-east-1.amazonaws.com/randomCards",
-      data: JSON.stringify(cards),
-    })
-      .then(function ({ hand }) {
-        const playerC = hand.asArray[0][0];
-        playerScore += hand.scores.byHand[0];
-        pAces += hand.scores.acesByHand[0];
-        dAces += hand.scores.acesByHand[1];
-        let playerCard = $("<li>").text(playerC);
-        playerEl.append(playerCard);
-        deltCards.push(playerC);
-        currPlayerHand.push(playerC);
-        // let aces = 0;
-        if (pAces > 0 && playerScore > 21) {
-          if (playerScore - 10 >= 10) {
-            playerScore -= 10;
-            pAces -= 1;
-          }
-        } else if (playerScore > 21) {
-          result.text("You Lost!");
-        }
-        scoreEl.text(playerScore);
-      })
-      .catch(function (err) {
-        console.log(err);
-      });
-  }
+  (function animate() {
+    suits.attr("style", "color: red;");
+    altSuits.attr("style", "color: black;");
+    setTimeout(function () {
+      suits.attr("style", "color: black;");
+      altSuits.attr("style", "color: red;");
+      setTimeout(animate, 600);
+    }, 600);
+  })();
 
   function startDeal() {
     $.get({
@@ -130,7 +33,7 @@ $(document).ready(function () {
         "https://8b5qreoqz7.execute-api.us-east-1.amazonaws.com/randomCards?hand_size=2&total_hands=2",
     })
       .then(function ({ hand }) {
-        console.log(hand);
+        // console.log(hand);
         const [playerHand, dealerHand] = hand.asArray;
         const initScore = hand.scores.byHand;
         playerScore += initScore[0];
@@ -161,7 +64,116 @@ $(document).ready(function () {
       });
   }
 
-  startDeal();
+  function hitMe(delt) {
+    const cards = {
+      previous_cards: delt,
+      hand_size: 1,
+    };
+    // console.log(cards);
+    $.post({
+      url: "https://8b5qreoqz7.execute-api.us-east-1.amazonaws.com/randomCards",
+      data: JSON.stringify(cards),
+    })
+      .then(function ({ hand }) {
+        const playerC = hand.asArray[0][0];
+        playerScore += hand.scores.byHand[0];
+        pAces += hand.scores.acesByHand[0];
+        dAces += hand.scores.acesByHand[1];
+        let playerCard = $("<li>").text(playerC);
+        playerEl.append(playerCard);
+        deltCards.push(playerC);
+        currPlayerHand.push(playerC);
+        // let aces = 0;
+        if (pAces > 0 && playerScore > 21) {
+          if (playerScore - 10 >= 10) {
+            playerScore -= 10;
+            pAces -= 1;
+          }
+        } else if (playerScore > 21) {
+          // result.text("You Lost!");
+          hold(deltCards);
+        }
+        scoreEl.text(playerScore);
+      })
+      .catch(function (err) {
+        console.log(err);
+      });
+  }
+
+  function hold(delt, tries = 0) {
+    if (dealerScore < 17 && tries < 6) {
+      const cards = {
+        previous_cards: delt,
+        hand_size: 1,
+      };
+      $.post({
+        url:
+          "https://8b5qreoqz7.execute-api.us-east-1.amazonaws.com/randomCards",
+        data: JSON.stringify(cards),
+      })
+        .then(function ({ hand }) {
+          // console.log(hand);
+          dAces += hand.scores.acesByHand[0];
+          // console.log("score: " + hand.scores.byHand[0]);
+          // console.log("init: " + dealerScore);
+          dealerScore += hand.scores.byHand[0];
+          // console.log(dAces);
+          if (dAces > 0 && dealerScore > 21) {
+            if (dealerScore - 10 >= 10) {
+              dealerScore -= 10;
+              dAces -= 1;
+            }
+          }
+          // console.log(dealerScore);
+          tries++;
+          // console.log("try " + tries);
+          // console.log("try");
+          let dealerCard = $("<li>").text(hand.asArray[0][0]);
+          dealerEl.append(dealerCard);
+          // showScores();
+          hold(deltCards, tries);
+        })
+        .catch(function (err) {
+          console.log(err);
+        });
+    } else {
+      showScores();
+      hitButton.attr("disabled", true);
+      holdButton.attr("disabled", true);
+    }
+  }
+
+  function showScores() {
+    $(".hidden").removeClass("hidden");
+    dealerScoreEl.empty();
+    dealerScoreEl.text(dealerScore);
+    if (playerScore > 21 || (dealerScore <= 21 && dealerScore > playerScore)) {
+      result.text("You Lost!");
+    } else if (
+      (playerScore <= 21 && playerScore > dealerScore) ||
+      (playerScore <= 21 && dealerScore > 21)
+    ) {
+      result.text("You Won!");
+    } else {
+      result.text("Tie!");
+    }
+  }
+
+  function playAgain() {
+    hitButton.attr("disabled", false);
+    holdButton.attr("disabled", false);
+    playAgainButton.addClass("hidden");
+    playerEl.empty();
+    dealerEl.empty();
+    result.empty();
+    dealerScoreEl.empty();
+    playerScore = 0;
+    dealerScore = 0;
+    pAces = 0;
+    dAces = 0;
+    deltCards = [];
+    currPlayerHand = [];
+  }
 
   hitButton.on("click", function () {
     hitMe(deltCards);
@@ -174,5 +186,7 @@ $(document).ready(function () {
   playAgainButton.on("click", function () {
     playAgain();
     startDeal();
-  })
+  });
+
+  startDeal();
 });
