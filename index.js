@@ -6,13 +6,30 @@ $(document).ready(function () {
   const hitButton = $("#hit");
   const holdButton = $("#hold");
   const result = $("#result");
+  const playAgainButton = $("#play-again");
 
   let playerScore = 0;
   let dealerScore = 0;
   let pAces = 0;
   let dAces = 0;
-  const deltCards = [];
+  let deltCards = [];
   let currPlayerHand = [];
+
+  function playAgain() {
+    hitButton.attr("disabled", false);
+    holdButton.attr("disabled", false);
+    playAgainButton.addClass("hidden");
+    playerEl.empty()
+    dealerEl.empty()
+    result.empty();
+    dealerScoreEl.empty();
+    playerScore = 0;
+    dealerScore = 0;
+    pAces = 0;
+    dAces = 0;
+    deltCards = [];
+    currPlayerHand = [];
+  }
 
   function showScores() {
     $(".hidden").removeClass("hidden");
@@ -153,4 +170,9 @@ $(document).ready(function () {
   holdButton.on("click", function () {
     hold(deltCards);
   });
+
+  playAgainButton.on("click", function () {
+    playAgain();
+    startDeal();
+  })
 });
