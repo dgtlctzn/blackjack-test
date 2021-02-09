@@ -42,7 +42,7 @@ $(document).ready(function () {
         if (pAces === 2) {
           displayScore -= 10;
         }
-        dAces += hand.scores.acesByHand[0];
+        dAces += hand.scores.acesByHand[1];
         for (let i = 0; i < 2; i++) {
           let playerCard = $("<li>").text(playerHand[i]);
           let dealerCard = $("<li>").text(dealerHand[i]);
@@ -80,11 +80,9 @@ $(document).ready(function () {
         playerEl.append(playerCard);
         deltCards.push(playerC);
         currPlayerHand.push(playerC);
-        if (pAces > 0) {
-          while (playerScore > 21 && pAces > 0) {
-              playerScore -= 10;
-              pAces--;
-          }
+        while (playerScore > 21 && pAces > 0) {
+          playerScore -= 10;
+          pAces--;
         }
         if (playerScore > 21) {
           hold(deltCards);
@@ -110,11 +108,9 @@ $(document).ready(function () {
         .then(function ({ hand }) {
           dAces += hand.scores.acesByHand[0];
           dealerScore += hand.scores.byHand[0];
-          if (dAces > 0) {
-            while (dealerScore > 21 && dAces > 0) {
-                dealerScore -= 10;
-                dAces--;
-            }
+          while (dealerScore > 21 && dAces > 0) {
+            dealerScore -= 10;
+            dAces--;
           }
           tries++;
           let dealerCard = $("<li>").text(hand.asArray[0][0]);
