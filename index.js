@@ -33,16 +33,14 @@ $(document).ready(function () {
         "https://8b5qreoqz7.execute-api.us-east-1.amazonaws.com/randomCards?hand_size=2&total_hands=2",
     })
       .then(function ({ hand }) {
-        // console.log(hand);
         const [playerHand, dealerHand] = hand.asArray;
         const initScore = hand.scores.byHand;
+        let displayScore = initScore[0];
         playerScore += initScore[0];
         dealerScore += initScore[1];
         pAces += hand.scores.acesByHand[0];
         if (pAces === 2) {
-          playerScore -= 10;
-        } else if (dAces === 2) {
-          dealerScore -= 10;
+          displayScore -= 10;
         }
         dAces += hand.scores.acesByHand[0];
         for (let i = 0; i < 2; i++) {
@@ -57,7 +55,7 @@ $(document).ready(function () {
           deltCards.push(dealerHand[i]);
           currPlayerHand.push(playerHand[i]);
         }
-        scoreEl.text(playerScore);
+        scoreEl.text(displayScore);
       })
       .catch(function (err) {
         console.log(err);
@@ -69,7 +67,6 @@ $(document).ready(function () {
       previous_cards: delt,
       hand_size: 1,
     };
-    // console.log(cards);
     $.post({
       url: "https://8b5qreoqz7.execute-api.us-east-1.amazonaws.com/randomCards",
       data: JSON.stringify(cards),
@@ -83,14 +80,13 @@ $(document).ready(function () {
         playerEl.append(playerCard);
         deltCards.push(playerC);
         currPlayerHand.push(playerC);
-        // let aces = 0;
-        if (pAces > 0 && playerScore > 21) {
-          if (playerScore - 10 >= 10) {
-            playerScore -= 10;
-            pAces -= 1;
+        if (pAces > 0) {
+          while (playerScore > 21 && pAces > 0) {
+              playerScore -= 10;
+              pAces--;
           }
-        } else if (playerScore > 21) {
-          // result.text("You Lost!");
+        }
+        if (playerScore > 21) {
           hold(deltCards);
         }
         scoreEl.text(playerScore);
@@ -112,25 +108,17 @@ $(document).ready(function () {
         data: JSON.stringify(cards),
       })
         .then(function ({ hand }) {
-          // console.log(hand);
           dAces += hand.scores.acesByHand[0];
-          // console.log("score: " + hand.scores.byHand[0]);
-          // console.log("init: " + dealerScore);
           dealerScore += hand.scores.byHand[0];
-          // console.log(dAces);
-          if (dAces > 0 && dealerScore > 21) {
-            if (dealerScore - 10 >= 10) {
-              dealerScore -= 10;
-              dAces -= 1;
+          if (dAces > 0) {
+            while (dealerScore > 21 && dAces > 0) {
+                dealerScore -= 10;
+                dAces--;
             }
           }
-          // console.log(dealerScore);
           tries++;
-          // console.log("try " + tries);
-          // console.log("try");
           let dealerCard = $("<li>").text(hand.asArray[0][0]);
           dealerEl.append(dealerCard);
-          // showScores();
           hold(deltCards, tries);
         })
         .catch(function (err) {
